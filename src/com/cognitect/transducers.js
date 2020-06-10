@@ -42,6 +42,7 @@ goog.scope(function() {
     // Definitions
 
     transducers.ITER_SYMBOL = typeof Symbol != "undefined" ? Symbol.iterator : "@@iterator";
+    transducers.ASYNC_ITER_SYMBOL = typeof Symbol != "undefined" ? Symbol.asyncIterator : "@@asyncIterator";
 
     /**
      * The Transducer protocol
@@ -93,6 +94,9 @@ goog.scope(function() {
 
     transducers.isIterable = function(x) {
         return x[transducers.ITER_SYMBOL] || x["next"];
+    };
+    transducers.isAsyncIterable = function(x) {
+        return x[transducers.ASYNC_ITER_SYMBOL] || x["next"];
     };
 
     transducers.slice = function(arrayLike, start, n) {
@@ -952,6 +956,32 @@ goog.scope(function() {
     };
 
     /**
+     * @param {com.cognitect.transducers.ITransformer} xf
+     * @param {Object} init
+     * @param {Object} asyncIter
+     * @returns {*}
+     */
+    transducers.asyncIterableReduce = async function(xf, init, asyncIter) {
+        if(asyncIter[transducers.ASYNC_ITER_SYMBOL]) {
+            asyncIter = asyncIter[transducers.ASYNC_ITER_SYMBOL]();
+        }
+
+        var acc  = init,
+            step = await asyncIter.next();
+
+        while(!step.done) {
+            acc = xf["@@transducer/step"](acc, step.value);
+            if(transducers.isReduced(acc)) {
+                acc = transducers.deref(acc);
+                break;
+            }
+            step = await asyncIter.next();
+        }
+
+        return xf["@@transducer/result"](acc);
+    };
+
+    /**
      * Given a transducer, an intial value and a
      * collection - returns the reduction.
      * @method transducers.reduce
@@ -968,6 +998,8 @@ goog.scope(function() {
                 return transducers.stringReduce(xf, init, coll);
             } else if(transducers.isArray(coll)) {
                 return transducers.arrayReduce(xf, init, coll);
+            } else if(transducers.isAsyncIterable(coll)) {
+                return transducers.asyncIterableReduce(xf, init, coll);
             } else if(transducers.isIterable(coll)) {
                 return transducers.iterableReduce(xf, init, coll);
             } else if(transducers.isObject(coll)) {
