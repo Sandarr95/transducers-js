@@ -970,7 +970,7 @@ goog.scope(function() {
             step = await asyncIter.next();
 
         while(!step.done) {
-            acc = xf["@@transducer/step"](acc, step.value);
+            acc = await xf["@@transducer/step"](acc, step.value);
             if(transducers.isReduced(acc)) {
                 acc = transducers.deref(acc);
                 break;
@@ -978,7 +978,7 @@ goog.scope(function() {
             step = await asyncIter.next();
         }
 
-        return xf["@@transducer/result"](acc);
+        return await xf["@@transducer/result"](acc);
     };
 
     /**
