@@ -14,7 +14,7 @@ preludenl=$prelude.$'\n'
 
 java -jar deps/closure-compiler/compiler.jar -O SIMPLE --formatting PRETTY_PRINT \
 --generate_exports --output_wrapper "$preludenl%output%" -D TRANSDUCERS_NODE_TARGET=true \
---externs=resources/node_externs.js --manage_closure_dependencies \
+--externs=resources/node_externs.js \
 --only_closure_dependencies --closure_entry_point=com.cognitect.transducers \
 --js_output_file=target/transducers.js \
 'deps/closure-library/closure/**.js' 'src/**.js'
