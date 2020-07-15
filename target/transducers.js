@@ -1,4 +1,4 @@
-// transducers-js 0.4.195
+// transducers-js 0.4.196
 // http://github.com/cognitect-labs/transducers-js
 // 
 // Copyright 2014-2015 Cognitect. All Rights Reserved.
@@ -1677,7 +1677,11 @@ com.cognitect.transducers.Map.prototype["@@transducer/result"] = function(a) {
   return this.xf["@@transducer/result"](a);
 };
 com.cognitect.transducers.Map.prototype["@@transducer/step"] = function(a, b) {
-  return this.xf["@@transducer/step"](a, this.f(b));
+  var c = this;
+  b = this.f(b);
+  return b instanceof Promise ? b.then(function(b) {
+    return c.xf["@@transducer/step"](a, b);
+  }) : this.xf["@@transducer/step"](a, b);
 };
 com.cognitect.transducers.map = function(a) {
   if (TRANSDUCERS_DEV && null == a) {

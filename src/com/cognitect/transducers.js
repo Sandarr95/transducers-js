@@ -295,7 +295,12 @@ goog.scope(function() {
         return this.xf["@@transducer/result"](result);
     };
     transducers.Map.prototype["@@transducer/step"] = function(result, input) {
-        return this.xf["@@transducer/step"](result, this.f(input));
+        const mappedVal = this.f(input);
+        if(mappedVal instanceof Promise) {
+            return mappedVal.then(val => this.xf["@@transducer/step"](result, val))
+        } else {
+            return this.xf["@@transducer/step"](result, mappedVal);
+        }
     };
 
     /**
